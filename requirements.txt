@@ -2,6 +2,6 @@ streamlit
 pandas
 altair
 plotly
-osmnx
+osmnx==1.9.1
 networkx
 matplotlib
