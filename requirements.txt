@@ -1,7 +1,7 @@
-streamlit
-pandas
-altair
-plotly
-osmnx
-networkx
-matplotlib
+altair==4.1.0
+matplotlib==3.5.0
+networkx==2.6.3
+osmnx==1.1.1
+pandas==1.4.0
+plotly==5.3.1
+streamlit==1.15.0
