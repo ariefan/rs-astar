@@ -117,57 +117,57 @@ with col[0]:    # Define the place name
 
 with col[1]:
     iteration = 1    
-    st.markdown('#### Iterasi ke:')
-    # Add left and right buttons inline
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button('←'):
-            iteration = max(iteration - 1, 0)
-    with col2:
-        st.write(iteration)
-    with col3:
-        if st.button('→'):
-            iteration += 1
+    # st.markdown('#### Iterasi ke:')
+    # # Add left and right buttons inline
+    # col1, col2, col3 = st.columns(3)
+    # with col1:
+    #     if st.button('←'):
+    #         iteration = max(iteration - 1, 0)
+    # with col2:
+    #     st.write(iteration)
+    # with col3:
+    #     if st.button('→'):
+    #         iteration += 1
 
-    # Generate random data
-    random_data = pd.DataFrame({
-        "states": ["State A", "State B", "State C", "State D", "State E"],
-        "population": [random.randint(1000000, 5000000) for _ in range(5)]
-    })
+    # # Generate random data
+    # random_data = pd.DataFrame({
+    #     "states": ["State A", "State B", "State C", "State D", "State E"],
+    #     "population": [random.randint(1000000, 5000000) for _ in range(5)]
+    # })
 
-    st.markdown('#### Open List')
-    # Display random data
-    st.dataframe(random_data,
-                    column_order=("states", "population"),
-                    hide_index=True,
-                    width=None,
-                    column_config={
-                        "states": st.column_config.TextColumn(
-                            "States",
-                        ),
-                        "population": st.column_config.ProgressColumn(
-                            "Population",
-                            format="%f",
-                            min_value=0,
-                            max_value=max(random_data.population),
-                        )}
-                    )
+    # st.markdown('#### Open List')
+    # # Display random data
+    # st.dataframe(random_data,
+    #                 column_order=("states", "population"),
+    #                 hide_index=True,
+    #                 width=None,
+    #                 column_config={
+    #                     "states": st.column_config.TextColumn(
+    #                         "States",
+    #                     ),
+    #                     "population": st.column_config.ProgressColumn(
+    #                         "Population",
+    #                         format="%f",
+    #                         min_value=0,
+    #                         max_value=max(random_data.population),
+    #                     )}
+    #                 )
 
-    st.markdown('#### Closed List')
-    # Display random data
-    st.dataframe(random_data,
-                    column_order=("states", "population"),
-                    hide_index=True,
-                    width=None,
-                    column_config={
-                        "states": st.column_config.TextColumn(
-                            "States",
-                        ),
-                        "population": st.column_config.ProgressColumn(
-                            "Population",
-                            format="%f",
-                            min_value=0,
-                            max_value=max(random_data.population),
-                        )}
-                    )
+    # st.markdown('#### Closed List')
+    # # Display random data
+    # st.dataframe(random_data,
+    #                 column_order=("states", "population"),
+    #                 hide_index=True,
+    #                 width=None,
+    #                 column_config={
+    #                     "states": st.column_config.TextColumn(
+    #                         "States",
+    #                     ),
+    #                     "population": st.column_config.ProgressColumn(
+    #                         "Population",
+    #                         format="%f",
+    #                         min_value=0,
+    #                         max_value=max(random_data.population),
+    #                     )}
+    #                 )
 

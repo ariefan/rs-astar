@@ -4,3 +4,4 @@ altair
 plotly
 osmnx
 networkx
+matplotlib
