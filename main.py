@@ -9,6 +9,8 @@ import networkx as nx
 import osmnx as ox
 import matplotlib.pyplot as plt
 import csv
+import math
+import heapq
 
 #######################
 # Page configuration
@@ -34,28 +36,41 @@ with open('rs_jogja.csv', newline='') as csvfile:
         coords.append(row)
 
 #######################
-# Sidebar
-with st.sidebar:
+## Sidebar
+#with st.sidebar:
+#    st.title('Rute terdekat antar Rumah Sakit')
+#
+#    dropdown_label = [coord['name'] + '. ' + coord['label'] for coord in coords]
+#    dropdown_value = [coord['name'] for coord in coords]
+#
+#    selected_coord = st.selectbox('Rumah sakit asal', options=dropdown_label)
+#    selected_source_value = dropdown_value[dropdown_label.index(selected_coord)]
+#
+#    selected_coord = st.selectbox('Rumah sakit tujuan', options=dropdown_label)
+#    selected_target_value = dropdown_value[dropdown_label.index(selected_coord)]
+
+
+#######################
+# Dashboard Main Panel
+col = st.columns((5, 3), gap='medium')
+
+with col[0]:
+    import osmnx as ox
+    import matplotlib.pyplot as plt
+    import networkx as nx
+    
     st.title('Rute terdekat antar Rumah Sakit')
 
     dropdown_label = [coord['name'] + '. ' + coord['label'] for coord in coords]
     dropdown_value = [coord['name'] for coord in coords]
 
-    selected_coord = st.selectbox('Rumah sakit asal', options=dropdown_label)
-    selected_source_value = dropdown_value[dropdown_label.index(selected_coord)]
-
-    selected_coord = st.selectbox('Rumah sakit tujuan', options=dropdown_label)
-    selected_target_value = dropdown_value[dropdown_label.index(selected_coord)]
-
-
-#######################
-# Dashboard Main Panel
-col = st.columns((6.5, 1.5), gap='medium')
-
-with col[0]:    # Define the place name
-    import osmnx as ox
-    import matplotlib.pyplot as plt
-    import networkx as nx
+    col1, col2 = st.columns(2)
+    with col1:
+        selected_coord = st.selectbox('Rumah sakit asal', options=dropdown_label, index=dropdown_value.index('K'))
+        selected_source_value = dropdown_value[dropdown_label.index(selected_coord)]
+    with col2:
+        selected_coord = st.selectbox('Rumah sakit tujuan', options=dropdown_label, index=dropdown_value.index('W'))
+        selected_target_value = dropdown_value[dropdown_label.index(selected_coord)]
 
     # Define the place name
     place_name = "Kota Yogyakarta"
@@ -84,6 +99,49 @@ with col[0]:    # Define the place name
 
         i+=1
 
+    # Define Euclidean distance heuristic function
+    def euclidean_distance(node1, node2):
+        x1, y1 = { graph.nodes[node1]['x'], graph.nodes[node1]['y'] }
+        x2, y2 = { graph.nodes[node2]['x'], graph.nodes[node2]['y'] }
+        return round(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 3)
+
+    # Define A* algorithm function
+    def astar(graph, start, goal):
+        open_list = [(0, start)]  # Priority queue, tuple: (f_score, node)
+        closed_list = set()
+        g_scores = {node: math.inf for node in graph.nodes()}
+        g_scores[start] = 0
+        parents = {}
+
+        while open_list:
+            _, current = heapq.heappop(open_list)
+            closed_list.add(current)
+
+            if current == goal:
+                path = []
+                while current in parents:
+                    path.insert(0, current)
+                    current = parents[current]
+                path.insert(0, start)
+                return path
+
+            for neighbor in graph.neighbors(current):
+                if neighbor in closed_list:
+                    continue
+
+                tentative_g_score = g_scores[current] + graph[current][neighbor][0]['length']
+                if tentative_g_score < g_scores[neighbor]:
+                    parents[neighbor] = current
+                    g_scores[neighbor] = tentative_g_score
+                    # f_score = g_scores[neighbor] + heuristic_values[neighbor]
+                    f_score = g_scores[neighbor] + euclidean_distance(neighbor, goal)
+                    heapq.heappush(open_list, (round(f_score, 3), neighbor))
+
+            # Print step
+            # print(f"Node: {current}\nOpen List: {open_list}\nClosed List: {closed_list}\n")
+
+        return None  # No path found 
+
     # Define your source and target nodes
     source = selected_source_value
     target = selected_target_value
@@ -94,7 +152,8 @@ with col[0]:    # Define the place name
 
     # Calculate the shortest path using A* algorithm
     graph = graph.to_undirected()
-    shortest_path = nx.astar_path(graph, start_node, end_node, weight='length')
+    # shortest_path = nx.astar_path(graph, start_node, end_node, weight='length')
+    shortest_path = astar(graph, start_node, end_node)
 
     # Define node colors and sizes
     node_colors = ['r' if node in added_nodes else 'b' for node in graph.nodes()]
@@ -113,9 +172,127 @@ with col[0]:    # Define the place name
     ox.plot_graph_route(graph, shortest_path, route_color='green', node_size=3, ax=ax, node_color='k')
 
     st.pyplot(fig)
+    
+    st.write('Rute terpendek melewati node: ')
+    st.write(shortest_path)
 
 
 with col[1]:
+    st.title('Contoh sederhana A* Algorithm')
+
+    dd_label = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+    dd_value = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+
+    col1, col2 = st.columns(2)
+    with col1:
+        sel_source_label= st.selectbox('Node Asal', options=dd_label, index=dd_value.index('D'))
+        sel_source_value = dd_value[dd_label.index(sel_source_label)]
+    with col2:
+        sel_target_label = st.selectbox('Node Tujuan', options=dd_label, index=dd_value.index('G'))
+        sel_target_value = dd_value[dd_label.index(sel_target_label)]
+
+    # Define Euclidean distance heuristic function
+    def euclidean_distance(node1, node2):
+        x1, y1 = nodes[node1]
+        x2, y2 = nodes[node2]
+        return round(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 3)
+
+    # Define A* algorithm function
+    txt = []
+    def astar(graph, start, goal):
+        open_list = [(0, start)]  # Priority queue, tuple: (f_score, node)
+        closed_list = set()
+        g_scores = {node: math.inf for node in graph.nodes()}
+        g_scores[start] = 0
+        parents = {}
+
+        while open_list:
+            _, current = heapq.heappop(open_list)
+            closed_list.add(current)
+
+            if current == goal:
+                path = []
+                while current in parents:
+                    path.insert(0, current)
+                    current = parents[current]
+                path.insert(0, start)
+                return path
+
+            for neighbor in graph.neighbors(current):
+                if neighbor in closed_list:
+                    continue
+
+                tentative_g_score = g_scores[current] + graph[current][neighbor]['weight']
+                if tentative_g_score < g_scores[neighbor]:
+                    parents[neighbor] = current
+                    g_scores[neighbor] = tentative_g_score
+                    f_score = g_scores[neighbor] + heuristic_values[neighbor]
+                    heapq.heappush(open_list, (round(f_score, 3), neighbor))
+
+            # Print step
+            txt.append(f"Node: {current}<br>Open List: {open_list}<br>Closed List: {closed_list}")
+
+        return None  # No path found
+
+    def draw_plot(sp):        
+        pos = nx.kamada_kawai_layout(G)
+        # Define node colors
+        edge_colors = ['blue' if (u, v) in zip(sp, sp[1:]) or (v, u) in zip(sp, sp[1:]) else 'black' for u, v, d in G.edges(data=True)]
+        edge_widths = [3 if (u, v) in zip(sp, sp[1:]) or (v, u) in zip(sp, sp[1:]) else 1 for u, v, d in G.edges(data=True)]
+        node_colors = ['lightblue' if node != source and node != target else 'orange' for node in G.nodes()]
+
+        nx.draw(G, pos, with_labels=True, node_size=800, node_color=node_colors, edge_color=edge_colors, width=edge_widths, font_size=10, font_weight='bold')
+        labels = nx.get_edge_attributes(G, 'weight')
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
+
+        # Print heuristic values on the plot
+        for node, (x, y) in pos.items():
+            plt.text(x, y + 0.1, f'h={heuristic_values[node]:.2f}', ha='center', fontsize=10, color='red')
+            plt.text(x, y - 0.15, f'{nodes[node]}', ha='center', fontsize=10, color='brown')
+
+        plt.title(f"A* Algorithm: Rute terpendek dari node {source} ke node {target}")
+        # display plot
+        st.pyplot(plt)
+
+    # Define the graph
+    G = nx.Graph()
+
+    nodes = {'A': (0, 0), 'B': (1, 2), 'C': (3, 1), 'D': (2, -1), 'E': (-1, 5), 'F': (4, 2), 'G': (2, 3)}
+    edges = [
+        ('A', 'B', None),
+        ('A', 'C', None),
+        ('A', 'E', None),
+        ('B', 'C', None),
+        ('B', 'D', None),
+        ('B', 'F', None),
+        ('C', 'G', None),
+        ('D', 'A', None),
+        ('E', 'G', None),
+        ('F', 'C', None),
+    ]
+
+    edges = [(u, v, euclidean_distance(u, v)) for u, v, weight in edges]
+
+    # Add nodes and edges to the graph
+    G.add_nodes_from(nodes.keys())
+    G.add_weighted_edges_from(edges)
+    G.to_undirected()
+
+    source = sel_source_value
+    target = sel_target_value
+
+    # Calculate heuristic value for each node
+    heuristic_values = {node: euclidean_distance(node, target) for node in nodes}
+
+    # Run A* algorithm
+    shortest_path = astar(G, source, target)
+
+    draw_plot(shortest_path)
+
+    for t in txt:
+        st.write(t, unsafe_allow_html=True)
+    st.write("Shortest Path:", shortest_path)
+
     iteration = 1    
     # st.markdown('#### Iterasi ke:')
     # # Add left and right buttons inline

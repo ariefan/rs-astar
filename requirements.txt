@@ -6,3 +6,5 @@ osmnx==1.9.1
 networkx
 matplotlib
 scikit-learn
+math
+heapq
